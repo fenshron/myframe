@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ueditor demo</title>
+</head>
+
+<body>
+    <!-- ¼ÓÔØ±à¼­Æ÷µÄÈÝÆ÷ -->
+    <script id="container" name="content" type="text/plain">
+        
+    </script>
+    <!-- ÅäÖÃÎÄ¼þ -->
+    <script type="text/javascript" src="ueditor.config.js"></script>
+    <!-- ±à¼­Æ÷Ô´ÂëÎÄ¼þ -->
+    <script type="text/javascript" src="ueditor.all.js"></script>
+    <!-- ÊµÀý»¯±à¼­Æ÷ -->
+    <script type="text/javascript">
+        var ue = UE.getEditor('container',{
+			toolbars: [
+				['bold', 'italic', 'underline', 'fontfamily', 'fontsize','forecolor','backcolor','justifyleft','justifyright','justifycenter','justifyjustify','insertorderedlist','insertunorderedlist','blockquote','link','source']
+			],
+			autoHeightEnabled: true,
+			autoFloatEnabled: true
+		});
+    </script>
+</body>
+
+</html>

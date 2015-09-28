@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.demo.dao.PubAuthoritiesResourcesDAO" >
+  <resultMap id="BaseResultMap" type="cn.demo.model.PubAuthoritiesResources" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="authority_id" property="authorityId" jdbcType="VARCHAR" />
+    <result column="resource_id" property="resourceId" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, authority_id, resource_id
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from pub_authorities_resources
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from pub_authorities_resources
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="cn.demo.model.PubAuthoritiesResources" >
+    insert into pub_authorities_resources (id, authority_id, resource_id
+      )
+    values (#{id,jdbcType=VARCHAR}, #{authorityId,jdbcType=VARCHAR}, #{resourceId,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="cn.demo.model.PubAuthoritiesResources" >
+    insert into pub_authorities_resources
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="authorityId != null" >
+        authority_id,
+      </if>
+      <if test="resourceId != null" >
+        resource_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="authorityId != null" >
+        #{authorityId,jdbcType=VARCHAR},
+      </if>
+      <if test="resourceId != null" >
+        #{resourceId,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="cn.demo.model.PubAuthoritiesResources" >
+    update pub_authorities_resources
+    <set >
+      <if test="authorityId != null" >
+        authority_id = #{authorityId,jdbcType=VARCHAR},
+      </if>
+      <if test="resourceId != null" >
+        resource_id = #{resourceId,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="cn.demo.model.PubAuthoritiesResources" >
+    update pub_authorities_resources
+    set authority_id = #{authorityId,jdbcType=VARCHAR},
+      resource_id = #{resourceId,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  
+ 	 <select id="getAuthoritiesResourcesByPage" resultMap="BaseResultMap">
+        select 
+         <include refid="Base_Column_List" />
+        from pub_authorities_resources  limit #{0},#{1}
+    </select>
+    
+    <select id="getAllAuthoritiesResourcesNum" resultType="java.lang.Integer">
+        select count(*) from pub_authorities_resources
+    </select>
+</mapper>

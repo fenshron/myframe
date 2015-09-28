@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.demo.dao.PageDAO">
+    
+    <!-- 当实体类属性跟数据库字段不一致时映射结果集 查询的时候resultType改为resultMap -->
+    <!-- 因为我的实体与数据库的一样所有不做这个操作 -->
+   <!--  <resultMap type="PubResources" id="PubResources">
+    	<result property="resource_id" column="resource_id"/>
+    	<result property="resource_name" column="resource_name"/>
+    	<result property="resource_type" column="resource_type"/>
+    	<result property="priority" column="priority"/>
+    	<result property="resource_string" column="resource_string"/>
+    	<result property="resource_desc" column="resource_desc"/>
+    	<result property="enabled" column="enabled"/>
+    	<result property="issys" column="issys"/>
+    	<result property="pid" column="pid"/>
+	</resultMap>   -->
+    
+    <select id="getMenu" parameterType="string" resultType="PubResources">
+       <!--  select  resource_id,resource_name,resource_type,priority,resource_string,resource_desc,enabled,issys,pid 
+		from pub_resources where resource_type='jsp' -->
+		select f.resource_id,f.resource_name,f.resource_type,f.priority,f.resource_string,f.resource_desc,f.enabled,f.issys,f.pid  from (select 
+		a.resource_id,a.resource_name,a.resource_type,a.priority,a.resource_string,a.resource_desc,a.enabled,a.issys,a.pid
+		from pub_resources a ,pub_users b,pub_users_roles c,pub_roles_authorities d,pub_authorities_resources e
+		where  
+		b.user_id=c.user_id and
+		c.role_id=d.role_id and 
+		d.authority_id=e.authority_id and
+		e.resource_id=a.resource_id and 
+		b.user_account='${_parameter}'
+		UNION 
+		select * from pub_resources where resource_id in('menu','system' )and resource_type ='jsp' ) f where f.resource_type='jsp'
+		
+    </select>
+    
+    <select id="getResource" resultType="PubResources">
+        select resource_id,resource_name,resource_type,priority,resource_string,resource_desc,enabled,issys,pid
+        from pub_resources  limit #{0},#{1}
+    </select>
+    
+    <select id="getAllResourceNum" resultType="java.lang.Integer">
+        select count(*) from pub_resources
+    </select>
+    
+    <select id="getAllResourceId" resultType="PubResources">
+        select resource_id,resource_name from pub_resources
+    </select>
+    
+    <delete id="deleteResource" parameterType="string">
+        delete from  pub_resources  where resource_id=#{_parameter}
+    </delete>
+    
+    <insert id="addResource" parameterType="PubResources" keyProperty="id">
+        insert into pub_resources(
+		resource_id,
+		resource_name,
+		resource_type,
+		priority,
+		resource_string,
+		resource_desc,
+		enabled,
+		issys,
+		pid)
+		values(
+		#{resource_id},#{resource_name},#{resource_type},${priority},#{resource_string},#{resource_desc},${enabled},${issys},#{pid});
+    </insert>
+    
+    
+    <update id="updateResource" parameterType="PubResources">
+    	update pub_resources set 
+    	resource_id=#{resource_id},
+		resource_name=#{resource_name} , 
+		resource_type=#{resource_type} , 
+		priority=${priority} , 
+		resource_string=#{resource_string} , 
+		resource_desc=#{resource_desc} , 
+		enabled=${enabled} , 
+		issys=${issys} , 
+		pid=#{pid} 
+		where resource_id=#{resource_id}
+    </update>
+</mapper>

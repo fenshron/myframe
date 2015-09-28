@@ -1,0 +1,130 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+  xmlns:beans="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+           http://www.springframework.org/schema/security
+           http://www.springframework.org/schema/security/spring-security.xsd">
+     
+    <!--  No bean named 'springSecurityFilterChain' is defined   
+    1、 这时发布一下你的项目，查看tomcat的webapps目录下，找到你的项目文件夹的classes文件夹有没有相关的spring.xml文件存在，不存在就会报错
+    2、查看web.xml文件<param-value>标签有没有引入applicationContext-security.xml这个文件
+        -->
+     
+      <!-- 不用经过spring security过滤，一般js、css都不需要过滤   -->
+     
+      <http pattern="/common/js/**" security="none"/>
+      <http pattern="/css/**" security="none"/>
+       <http pattern="/js/**" security="none"/>
+      <http pattern="/*/login.jsp" security="none"/> 
+	  
+      
+      
+      <!-- auto-config="true" -->  
+      <http use-expressions="true" entry-point-ref="authenticationProcessingFilterEntryPoint" >
+	       <intercept-url pattern="/admin/**" access="hasRole('ROLE_ADMIN')" />
+	       <intercept-url pattern="/user/**" access="hasAnyRole('ROLE_ADMIN','ROLE_USER')" />
+           <!-- 单用户登陆 -->
+           <session-management>
+              <concurrency-control max-sessions="1"
+                error-if-maximum-exceeded="true" />
+           </session-management>
+      
+ <!-- 这种自定义的登录页面，不能经过security的用户信息验证，也就等于不能取出用户的权限     
+           <form-login login-page='/login.jsp' default-target-url="/index.jsp"/>
+  -->          
+            <!-- 尝试访问没有权限的页面时跳转的页面 -->      
+           <access-denied-handler error-page="/403.jsp"/>
+          
+           <custom-filter ref="loginFilter" position="FORM_LOGIN_FILTER"  />   
+             
+           <custom-filter ref="myFilter" before="FILTER_SECURITY_INTERCEPTOR"/>
+   
+           <!-- 检测失效的sessionId,session超时时，定位到另外一个URL -->  
+            <session-management invalid-session-url="/sessionTimeOut.jsp" /> 
+        <!-- 
+            <custom-filter ref="logoutFilter" before="LOGOUT_FILTER"/>
+             -->
+             
+             <logout invalidate-session="true"  logout-success-url="/"  logout-url="/logout"/>
+	  </http>
+
+         <!-- 登录验证器 -->  
+    <beans:bean id="loginFilter"  
+        class="cn.demo.security.login.MyUsernamePasswordAuthenticationFilter">  
+       
+        <!-- value="/loginUser.action"处理登录表单的action ，value值要以“/”开关，否则会报错 ：
+        org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'org.springframework.security.filterChains': Cannot resolve reference to bean 'org.springframework.security.web.DefaultSecurityFilterChain#3' while setting bean property 'sourceList' with key [3]; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'org.springframework.security.web.DefaultSecurityFilterChain#3': Cannot resolve reference to bean 'loginFilter' while setting constructor argument with key [4]; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'loginFilter' defined in class path resource [applicationContext-security.xml]: Error setting property values; nested exception is org.springframework.beans.PropertyBatchUpdateException; nested PropertyAccessExceptions (1) are:
+PropertyAccessException 1: org.springframework.beans.MethodInvocationException: Property 'filterProcessesUrl' threw exception; nested exception is java.lang.IllegalArgumentException: userAction!login.action isn't a valid redirect URL        
+        -->  
+        <beans:property name="filterProcessesUrl" value="/dologin.htm"></beans:property>  
+                <!-- 验证成功后的处理  -->   
+        <beans:property name="authenticationSuccessHandler" ref="loginLogAuthenticationSuccessHandler"></beans:property>  
+            
+                <!-- 验证失败后的处理  --> 
+        <beans:property name="authenticationFailureHandler" ref="simpleUrlAuthenticationFailureHandler"></beans:property>  
+      
+       
+        <beans:property name="authenticationManager" ref="authenticationManager"></beans:property> 
+                  
+        <beans:property name="UserService" ref="userService"></beans:property>  
+    </beans:bean>  
+   
+   
+    <beans:bean id="loginLogAuthenticationSuccessHandler"  
+        class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">  
+        <beans:property name="defaultTargetUrl" value="/index/going.htm"></beans:property>  
+    </beans:bean>  
+   
+    <beans:bean id="simpleUrlAuthenticationFailureHandler"  
+        class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler">  
+        <!-- 可以配置相应的跳转方式。属性forwardToDestination为true采用forward false为sendRedirect -->  
+        <beans:property name="defaultFailureUrl" value="/login.htm"></beans:property>  
+    </beans:bean>  
+   
+      
+    <!-- 认证过滤器 -->  
+        <beans:bean id="myFilter"  class="cn.demo.security.MyFilterSecurityInterceptorImpl"> 
+            
+            <beans:property name="authenticationManager"  ref="authenticationManager" /> 
+                             
+            <beans:property name="accessDecisionManager"  ref="myAccessDecisionManagerBean" />    
+                     
+            <beans:property name="securityMetadataSource" ref="mySecurityMetadataSource" /> 
+        </beans:bean>
+
+        <!-- spring security提供的用户登录验证 ，alias的值对应上面的ref="authenticationManager" -->
+        <authentication-manager alias="authenticationManager">     
+            <!--userDetailServiceImpl 获取登录的用户、用户权限 -->          
+            <authentication-provider user-service-ref="userDetailServiceImpl" />
+            
+        </authentication-manager>
+    	  
+       
+        <!-- 获取登录的用户、用户权限 -->	   
+	    <beans:bean id="userDetailServiceImpl" class="cn.demo.security.UserDetailsServiceImpl">
+		    <beans:property name="UserService" ref="userService"></beans:property>
+	    </beans:bean>
+	    
+	    <!-- 判断是否有权限访问请求的url页面 -->
+ 	    
+	    <beans:bean id="myAccessDecisionManagerBean" 
+	          class="cn.demo.security.AccessDecisionManagerImpl">
+	    </beans:bean>     
+	    
+	    <!-- 获取数据库中所有的url资源，读出url资源与权限的对应关系  -->    
+	      
+	    <beans:bean id="mySecurityMetadataSource"  
+	          class="cn.demo.security.SecurityMetadataSourceImpl">
+		    <beans:constructor-arg><beans:ref bean="userService"/></beans:constructor-arg>
+	    </beans:bean>  
+
+        <!-- 未登录的切入点 -->  
+    <beans:bean id="authenticationProcessingFilterEntryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">  
+        <beans:property name="loginFormUrl" value="/sessiontimeout.htm"></beans:property>  
+    </beans:bean>
+    
+  
+</beans:beans>
+
+

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.demo.dao.UserDAO">
+    
+	<sql id="userField">(NAME)</sql>
+	
+	<insert id="insert" parameterType="User"  keyProperty="id">
+	    insert into user (name)values(#{name})
+	</insert>
+	
+	<select  id="findAuthByUsername" parameterType="java.util.HashMap" resultType="User">
+		select id,name.password from user where name=#{name} and password=#{password}    
+	</select>
+	
+	<select id="findRoleName"  resultType="Roles"> 
+	    select role_name from pub_roles
+	</select>
+	
+	<select id="findResource" parameterType="string" resultType="Resources">
+	  SELECT D.resource_id,D.resource_name,D.resource_type,D.priority,D.resource_string,D.resource_desc,D.enabled,D.pid
+	  FROM pub_authorities_resources A,pub_roles_authorities B,pub_roles C,pub_resources D
+	  WHERE D.resource_id=A.resource_id AND A.authority_id=B.authority_id AND B.role_id=C.role_id AND C.role_name='${_parameter}'
+	</select>
+	
+	<select id="findUsers" parameterType="string" resultType="PubUsers">
+	    select user_id,user_account,user_name,user_password,enabled,issys,user_desc
+	    from pub_users where user_account='${_parameter}'
+	</select>
+	
+	<select id="findRoleByName" parameterType="string" resultType="PubRoles">
+	    select a.role_name from pub_roles a,pub_users_roles b,pub_users c where  a.role_id=b.role_id and b.user_id=c.user_id and c.user_name='${_parameter}'
+	</select>
+	
+</mapper>
